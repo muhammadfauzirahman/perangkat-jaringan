@@ -26,8 +26,10 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Typecheck
-        run: npx tsc --noEmit
-
+      # Build harus sebelum typecheck: Next generate tipe route (LayoutProps,
+      # PageProps) ke .next/types saat build, dan tsconfig meng-include-nya.
       - name: Build
         run: npm run build
+
+      - name: Typecheck
+        run: npx tsc --noEmit
