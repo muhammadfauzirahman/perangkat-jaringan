@@ -2,7 +2,7 @@
 
 Inventaris perangkat jaringan Pemerintah Kota Banjarmasin.
 
-Repo ini masih tahap fondasi: Next.js + Drizzle + PostgreSQL sudah tersambung dan dibuktikan oleh satu halaman yang membaca tabel percobaan. Fitur aplikasi menyusul di issue berikutnya.
+Repo ini berisi skema domain lengkap JARKITA (12 tabel, 6 enum) dan master data nyata.
 
 ## Stack
 
@@ -56,19 +56,25 @@ Semua versi dipin eksak (tanpa `^`) supaya hasil install sama di semua mesin dan
    npm run db:migrate
    ```
 
-5. Isi tabel percobaan dengan sedikit data:
+5. Isi master data (111 unit kerja, jenis perangkat, merk):
 
    ```powershell
    npm run db:seed
    ```
 
-6. Jalankan dev server:
+6. Verifikasi constraint database:
+
+   ```powershell
+   npm run db:check
+   ```
+
+7. Jalankan dev server:
 
    ```powershell
    npm run dev
    ```
 
-   Buka <http://localhost:3000>. Halaman menampilkan isi tabel `users`. Kalau koneksi gagal, halaman menampilkan pesan error, bukan crash.
+   Buka <http://localhost:3000>. Halaman menampilkan ringkasan jumlah baris tiap tabel master. Kalau koneksi gagal, halaman menampilkan pesan error, bukan crash.
 
 ## Script
 
@@ -78,9 +84,10 @@ Semua versi dipin eksak (tanpa `^`) supaya hasil install sama di semua mesin dan
 | `npm run build`       | Build production                                      |
 | `npm start`           | Jalankan hasil build                                  |
 | `npm run lint`        | ESLint                                                |
-| `npm run db:generate` | Buat file migration dari perubahan `src/db/schema.ts` |
+| `npm run db:generate` | Buat file migration dari perubahan `src/lib/db/schema.ts` |
 | `npm run db:migrate`  | Terapkan migration ke database                        |
-| `npm run db:seed`     | Isi tabel percobaan                                   |
+| `npm run db:seed`     | Isi master data                                       |
+| `npm run db:check`    | Verifikasi constraint database                        |
 | `npm run db:studio`   | Drizzle Studio (GUI database)                         |
 
 ## Struktur
@@ -89,11 +96,13 @@ Semua versi dipin eksak (tanpa `^`) supaya hasil install sama di semua mesin dan
 drizzle/            file migration hasil generate
 src/app/            route App Router
   layout.tsx        layout root
-  page.tsx          halaman bukti koneksi
-src/db/
+  page.tsx          halaman ringkasan master data
+src/lib/db/
   index.ts          koneksi database (Pool + instance Drizzle)
-  schema.ts         definisi tabel
-  seed.ts           isi tabel percobaan
+  schema.ts         definisi 12 tabel domain + 6 enum
+  queries.ts        helper query
+  seed.ts           isi master data
+  check.ts          verifikasi constraint
 drizzle.config.ts   konfigurasi drizzle-kit
 docker-compose.yml  PostgreSQL untuk development
 ```
@@ -106,8 +115,8 @@ docker-compose.yml  PostgreSQL untuk development
 
 **Kredensial hanya di `.env`.** File `.env` masuk `.gitignore`; yang di-commit hanya `.env.example`. Tidak ada password di `docker-compose.yml` maupun di source.
 
-**Tabel `users` adalah tabel percobaan.** Isinya sengaja minimal (id, nama, email, created_at) dan hanya untuk membuktikan koneksi. Skema domain JARKITA yang asli dibuat di issue berikutnya.
+**Tabel domain lengkap.** Menggantikan tabel percobaan sebelumnya. Terdiri dari 12 tabel dan 6 enum.
 
-**`src/db/seed.ts` bikin koneksi sendiri** dan tidak mengimpor `src/db/index.ts`, karena Node menjalankan file `.ts` itu tanpa bundler sehingga setiap import relatif butuh ekstensi eksplisit. Konsekuensinya `allowImportingTsExtensions` diaktifkan di `tsconfig.json`.
+**`src/lib/db/seed.ts` dan `check.ts` bikin koneksi sendiri** dan tidak mengimpor `src/lib/db/index.ts`, karena Node menjalankan file `.ts` itu tanpa bundler sehingga setiap import relatif butuh ekstensi eksplisit. Konsekuensinya `allowImportingTsExtensions` diaktifkan di `tsconfig.json`.
 
 **Koneksi memakai satu `Pool` global.** Cukup untuk deploy satu proses (on-prem / container). Kalau dipindah ke serverless, ganti ke driver serverless atau tambahkan connection pooler.
