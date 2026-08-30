@@ -1,13 +1,12 @@
 import { defineConfig } from "drizzle-kit";
 
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL belum diset. Salin .env.example jadi .env.");
+}
+
 export default defineConfig({
-  dialect: "mysql",
+  dialect: "postgresql",
   schema: "./src/db/schema.ts",
   out: "./drizzle",
-  dbCredentials: {
-    host: process.env.DB_HOST || "localhost",
-    user: process.env.DB_USER || "root",
-    password: process.env.DB_PASSWORD || "",
-    database: process.env.DB_NAME || "test",
-  },
+  dbCredentials: { url: process.env.DATABASE_URL },
 });
